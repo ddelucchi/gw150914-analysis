@@ -46,3 +46,18 @@ Public data are fetched from their authoritative archives rather than committed 
 - the SciPy/TaylorF2 fallback is a simplified diagnostic model
 - successful software tests do not constitute independent confirmation of published astrophysical parameter estimates
 - remote archive availability and heavyweight dependency resolution remain external integration dependencies
+
+
+## Post-curation hardening
+
+The public source was subsequently hardened beyond the initial audit snapshot:
+
+- corrected the leading-order chirp-frequency dependence from an inconsistent mass exponent to the standard chirp-mass scaling;
+- changed the NumPy matched-filter fallback to retain the complex quadrature and standard one-sided normalization rather than reconstructing a real-only correlation with `irfft`;
+- made strain-cache filenames reflect the sample rate actually fetched after GWOSC fallback;
+- made HTTP and archive extraction writes atomic so interrupted transfers do not become future cache hits;
+- introduced explicit waveform-product provenance so a diagnostic synthetic fallback cannot be labelled as a PESummary maximum-likelihood waveform;
+- propagated the actual detector sample rate into fallback waveform construction;
+- added network-free regression cases for the corrected numerical and provenance invariants.
+
+The validation observations earlier in this file predate those changes. Re-run the current test suite to establish the state of the current commit.
