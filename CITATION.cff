@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use or discuss this software in research, please cite this repository."
+title: "GW150914 Reproducible Analysis & Figure Pipeline"
+type: software
+authors:
+  - family-names: "Delucchi"
+    given-names: "Daxx"
+abstract: "Reproducible scientific-computing pipeline for public GW150914 strain, conditioning, matched filtering, diagnostics, and figures"
+version: 0.1.0
+date-released: 2026-09-17
+keywords:
+  - "gravitational-waves"
+  - "GW150914"
+  - "scientific-computing"
+  - "reproducibility"
+  - "signal-processing"
