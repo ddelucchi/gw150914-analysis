@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from _common import setup, load_event_strain, long_welch_asd
 from src.preprocess import viz_condition, extract_segment, apply_bandpass
 from src.correlation import lag_correlation
-from src.waveform_overlay import maximum_likelihood_waveform
+from src.waveform_overlay import build_waveform_product
 from src.style import save_figure
 
 
