@@ -1,0 +1,143 @@
+# =====================================================================
+# GW150914 reproducible figure pipeline — master configuration
+# Edit values here; no script should hard-code numerics.
+# =====================================================================
+
+event:
+  name: GW150914
+  utc: "2015-09-14T09:50:45"
+  gps_merger: 1126259462.4         # peak/merger epoch used by GWpy/PESummary examples
+  detectors: [H1, L1]
+  # Documented arrival-time delay (L1 first, then H1), discovery paper
+  hl_delay_ms: 6.9
+  hl_delay_sign: +1                # H1 lags L1; shift H1 by -delay for overlay
+
+data:
+  # GWOSC fetch interval used by official GWpy / PESummary examples
+  fetch_start_gps: 1126259446
+  fetch_end_gps:   1126259478
+  # GWOSC publishes 16384 Hz (master) and 4096 Hz (decimated, ~few % near Nyquist)
+  master_sample_rate: 16384
+  quicklook_sample_rate: 4096
+  # Strain not calibrated below 10 Hz per GWOSC
+  calibration_low_hz: 10.0
+
+paths:
+  raw_dir:          "data/raw"
+  intermediate_dir: "data/intermediate"
+  posterior_dir:    "data/posterior"
+  manifest_dir:     "data/manifests"
+  fig_main:         "figures/main"
+  fig_appendix:     "figures/appendix"
+
+posterior:
+  # Official GWTC-1 PE sample release supersedes older O1 samples
+  gwtc1_filename: "GW150914_GWTC-1.hdf5"
+  gwtc1_url:      "https://dcc.ligo.org/public/0157/P1800370/005/GW150914_GWTC-1.hdf5"
+  # PESummary public bundle used in their GW150914 example
+  pesummary_zip_url: "https://dcc.ligo.org/public/0163/P1800370/004/pesummary_samples.zip"
+  pesummary_inner_dat: "GW150914_bilby_pesummary.dat"
+
+# ------------------ Visualization-mode conditioning ------------------
+# Per LIGO detector-noise guide: zero-phase 8th-order Butterworth [35,350] Hz
+# applied AFTER whitening; for VISUAL display only — not the LVC pipeline.
+viz:
+  bandpass_low_hz: 35.0
+  bandpass_high_hz: 350.0
+  butter_order: 8
+  notches_hz: [60.0, 120.0, 180.0, 300.0]   # strong instrumental lines (US mains + harmonics)
+  tukey_alpha: 0.25                          # for short event windows
+  zoom_window_s: [-0.20, +0.05]              # relative to merger
+
+# ------------------ Analysis-mode conditioning -----------------------
+# Per GWpy matched-filter example: highpass 15 Hz, PSD(4,2), f_low=15-20 Hz
+analysis:
+  highpass_hz: 15.0
+  psd_segment_s: 4.0
+  psd_overlap_s: 2.0
+  template_f_low_hz: 20.0
+  matched_filter_low_freq_cutoff_hz: 15.0
+  template_approximant: "IMRPhenomD"
+  template_mass1_msun: 40.0
+  template_mass2_msun: 32.0
+
+# ------------------ DCC processing-pipeline figure -------------------
+# 4 s segment centered on GPS 1126259462; Tukey 0.5 s transitions;
+# Welch ASD averaged over 1024 s, 4 s chunks spaced by 2 s.
+processing_pipeline:
+  segment_center_gps: 1126259462.0
+  segment_length_s: 4.0
+  tukey_transition_s: 0.5
+  welch_total_s: 1024.0
+  welch_chunk_s: 4.0
+  welch_step_s: 2.0
+
+# ------------------ Q-transform (GWpy) -------------------------------
+qtransform:
+  outseg_gps: [1126259462.2, 1126259462.5]
+  q_range:   [4, 64]
+  frange_hz: [20, 500]
+  log_freq:  true
+  cmap:      "viridis"           # perceptually uniform, NOT rainbow
+  vmin:      0.0
+  vmax:      27.0           # softer ceiling -> richer texture in H1 plateau
+
+# ------------------ Direct-data chirp ridge (Fig 6) ------------------
+ridge:
+  search_window_s: [-0.20, +0.005]   # inspiral + a hair past merger
+  ridge_band_hz: [30.0, 300.0]
+  fit_range_hz: [35.0, 250.0]       # broad band to capture the full chirp
+  bandpass_hz: [35.0, 350.0]
+
+# ------------------ PESummary max-L overlay (Fig 7) ------------------
+maxl:
+  approximant: "IMRPhenomPv2"
+  detector_for_projection: "L1"
+  bandpass_hz: [40.0, 300.0]
+  window_s:   [-0.10, +0.10]
+
+# ------------------ Ringdown inset (Fig 10) --------------------------
+ringdown:
+  expected_freq_hz: 250.0          # ~250–260 Hz for chi~0.7, M_f~62 Msun
+  expected_tau_ms:  4.0
+  inset_window_s:   [-0.005, +0.040]
+
+# ------------------ Posterior corner (Fig 11) ------------------------
+posterior_plot:
+  parameters:
+    - "chirp_mass_det"
+    - "mass_ratio"
+    - "chi_eff"
+  truths: null
+
+# ------------------ Aesthetics ---------------------------------------
+style:
+  detector_colors:
+    H1: "#1f77b4"
+    L1: "#d62728"
+  template_color: "#2ca02c"
+  residual_color: "#7f7f7f"
+  font_family: "DejaVu Sans"
+  base_fontsize: 10
+  line_width: 1.2
+  cmap_tf: "viridis"
+  dpi_png: 400
+  dpi_raster_inset: 600
+  fig_width_in: 7.0
+  fig_height_in: 4.4
+
+# ------------------ Reproducibility ----------------------------------
+seeds:
+  numpy:    20150914
+  bootstrap: 42
+
+modes:
+  default: "paper"      # "paper" | "robustness"
+
+robustness:
+  tukey_alpha_grid: [0.05, 0.25, 0.5, 1.0]
+  psd_seglen_grid_s: [2.0, 4.0, 8.0, 16.0]
+  psd_overlap_frac_grid: [0.0, 0.5, 0.75]
+  bandpass_low_grid_hz: [20.0, 25.0, 30.0, 35.0, 40.0]
+  bandpass_high_grid_hz: [90.0, 110.0, 130.0, 150.0, 200.0]
+

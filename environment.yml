@@ -1,0 +1,21 @@
+name: gw150914
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy>=1.26
+  - scipy>=1.11
+  - matplotlib>=3.8
+  - pandas>=2.1
+  - h5py>=3.10
+  - pyyaml
+  - requests
+  - tqdm
+  - corner
+  - pip
+  - pip:
+      - gwpy>=3.0
+      - pycbc>=2.3
+      - pesummary>=1.0
+      - lalsuite
+

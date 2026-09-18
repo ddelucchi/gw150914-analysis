@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gw150914-figures"
+version = "0.1.0"
+description = "Reproducible publication-grade GW150914 figure pipeline."
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "matplotlib>=3.8",
+  "pandas>=2.1",
+  "h5py>=3.10",
+  "pyyaml",
+  "requests",
+  "tqdm",
+  "corner",
+  "gwpy>=3.0",
+  "pycbc>=2.3",
+  "pesummary>=1.0",
+]
+
+[tool.setuptools]
+packages = ["src"]
+
