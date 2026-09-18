@@ -17,7 +17,7 @@ The project is designed for inspection and reproducibility. It is not a replacem
 - Q-transform orchestration
 - H1/L1 alignment and correlation utilities
 - matched-filter SNR paths
-- TaylorF2/SciPy fallback waveforms for diagnostic and visual use
+- TaylorF2/SciPy matched-filter fallback plus provenance-labelled synthetic waveform overlays
 - chirp-ridge fitting
 - ringdown-scale analysis
 - posterior plotting
@@ -32,7 +32,7 @@ Two processing modes are intentionally separated.
 
 **Analysis mode** follows matched-filter conventions more closely and can use GWpy/PyCBC when those packages are available.
 
-The SciPy/TaylorF2 fallback is a diagnostic implementation. Its simplified inspiral/rolloff model is useful for reproducible demonstrations but must not be interpreted as equivalent to full IMR parameter estimation.
+The lightweight fallback paths are diagnostic implementations. The matched-filter fallback uses a truncated TaylorF2-style frequency-domain inspiral model; visual overlays use an explicitly provenance-labelled synthetic inspiral + ringdown sketch. Neither is equivalent to full IMR parameter estimation.
 
 One historical SNR figure is deliberately excluded from the default paper build because its detector-timing behavior did not agree with the intended reference path. Keeping a known-bad diagnostic out of the release build is part of the reproducibility contract.
 
@@ -71,7 +71,7 @@ python -m compileall -q src scripts
 
 On Windows, activate with `.venv\Scripts\activate`.
 
-The core tests exercise configuration invariants, Welch ASD behavior, explicit whitening, TaylorF2 support, waveform finiteness, and deterministic signal-processing properties.
+The core tests exercise configuration invariants, Welch ASD behavior, explicit whitening, fallback waveform support, leading-order chirp-mass scaling, matched-filter normalization, causal ringdown behavior, requested sample-rate preservation, and atomic-download cleanup semantics.
 
 ## Full analysis environment
 
@@ -114,9 +114,11 @@ Downloaded data, intermediate products, and generated figures are excluded from 
 
 ## Validation status
 
-The curated source release has been checked for Python compilation and CLI construction. The public release adds network-free numerical tests so a fresh clone can verify the core scientific utilities without depending on remote data availability.
+The initial curated source release was checked for Python compilation and CLI construction. The public source has since received additional numerical and provenance hardening, including corrected leading-order chirp-mass scaling, complex matched-filter normalization, sample-rate-truthful strain caching, atomic downloads, and runtime waveform provenance labels.
 
-A successful core test suite establishes local numerical/software invariants. It does not independently reproduce the LVC discovery or parameter-estimation analysis.
+The current network-free test suite is the executable contract for those local invariants. GitHub Actions is configured for it, but the account currently reports workflow startup failures before job creation; until runner execution is restored, use the clone-local commands above rather than inferring a green hosted-CI state.
+
+Passing the core suite does not independently reproduce the LVC discovery or parameter-estimation analysis.
 
 ## Release audit
 
