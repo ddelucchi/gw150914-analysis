@@ -19,7 +19,7 @@ from _common import setup, load_event_strain, long_welch_asd
 from src.preprocess import viz_condition, extract_segment, apply_bandpass
 from src.spectral import qtransform
 from src.style import detector_color, save_figure
-from src.waveform_overlay import maximum_likelihood_waveform
+from src.waveform_overlay import build_waveform_product
 
 
 def _rms_in_band(t: np.ndarray, x: np.ndarray, lo: float, hi: float) -> float:
@@ -112,11 +112,11 @@ def main() -> None:
                     label=f"{ifo} data" + (" (sign-flipped)" if sign == -1 else ""))
             ax.plot(tw_rel, hw_b,
                     color=cfg["style"]["template_color"], lw=1.4,
-                    label="best-fit IMR sketch")
+                    label=product.label)
             ax.set_xlim(*cfg["viz"]["zoom_window_s"])
             ax.set_ylim(-5, 5)
             ax.axvline(0, color="0.4", ls=":", lw=0.7)
-            ax.set_title(f"{ifo} data vs best-fit IMR (PN+RD sketch)")
+            ax.set_title(f"{ifo} data vs reference waveform")
             ax.set_ylabel(r"strain ($\sigma$ units)")
             ax.legend(loc="upper left", fontsize=8, framealpha=0.9)
     except Exception as exc:
