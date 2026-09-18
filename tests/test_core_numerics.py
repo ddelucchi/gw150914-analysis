@@ -5,8 +5,11 @@ import numpy as np
 from src.config import load_config
 from src.preprocess import welch_asd, whiten_explicit
 from src.synth_waveform import (
+    MSUN_S,
     chirp_mass_msun,
     f_isco,
+    matched_filter_snr_series,
+    newtonian_chirp,
     ringdown_tail,
     taylorf2_strain,
     time_domain_chirp,
@@ -94,3 +97,54 @@ def test_ringdown_is_causal() -> None:
     assert np.all(h[t < 0.0] == 0.0)
     assert np.any(np.abs(h[t >= 0.0]) > 0.0)
     assert np.all(np.isfinite(h))
+
+
+def test_newtonian_chirp_frequency_obeys_leading_order_chirp_mass_scaling() -> None:
+    t = np.array([-1.0])
+    tc = 0.0
+    m1 = 30.0
+    m2 = 30.0
+    _, f = newtonian_chirp(t, tc, m1, m2, f_low=0.0)
+
+    mc_s = chirp_mass_msun(m1, m2) * MSUN_S
+    tau = tc - t[0]
+    expected = (
+        (5.0 ** (3.0 / 8.0))
+        / (8.0 * np.pi)
+        * mc_s ** (-5.0 / 8.0)
+        * tau ** (-3.0 / 8.0)
+    )
+
+    assert f[0] > 0.0
+    assert np.isclose(f[0], expected, rtol=1e-12, atol=0.0)
+
+
+def test_matched_filter_self_template_peak_has_standard_norm() -> None:
+    fs = 1024.0
+    n = 4096
+    time = np.arange(n) / fs
+    template = (
+        np.sin(2.0 * np.pi * 64.0 * time)
+        + 0.35 * np.sin(2.0 * np.pi * 91.0 * time + 0.2)
+    )
+
+    freqs = np.fft.rfftfreq(n, d=1.0 / fs)
+    psd = np.ones_like(freqs)
+    f_low = 20.0
+
+    snr = matched_filter_snr_series(
+        template,
+        template,
+        fs,
+        freqs,
+        psd,
+        f_low=f_low,
+    )
+
+    hf = np.fft.rfft(template)
+    mask = freqs >= f_low
+    sigma2 = 4.0 / (fs * n) * np.sum(np.abs(hf[mask]) ** 2)
+    expected_peak = np.sqrt(sigma2)
+
+    assert np.all(np.isfinite(snr))
+    assert np.isclose(np.max(snr), expected_peak, rtol=1e-12, atol=1e-12)
