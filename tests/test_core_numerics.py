@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
+
 
 from src.config import load_config
+from src.download_data import _http_download
+from src.waveform_overlay import build_waveform_product
 from src.preprocess import welch_asd, whiten_explicit
 from src.synth_waveform import (
     MSUN_S,
@@ -148,3 +152,69 @@ def test_matched_filter_self_template_peak_has_standard_norm() -> None:
 
     assert np.all(np.isfinite(snr))
     assert np.isclose(np.max(snr), expected_peak, rtol=1e-12, atol=1e-12)
+
+
+def test_waveform_fallback_preserves_requested_sample_rate(tmp_path) -> None:
+    cfg = load_config()
+    fs = 2048.0
+    product = build_waveform_product(
+        tmp_path / "missing_pesummary.dat",
+        cfg,
+        float(cfg["event"]["gps_merger"]),
+        ifo="L1",
+        sample_rate_hz=fs,
+    )
+
+    assert product.provenance.startswith("diagnostic_synthetic:")
+    assert product.detector_projected is False
+    assert product.sample_rate_hz == fs
+    assert len(product.times) == int(4.0 * fs)
+    assert len(product.strain) == len(product.times)
+    dt = np.diff(product.times)
+    assert np.allclose(dt, 1.0 / fs, rtol=0.0, atol=2e-10)
+
+
+class _FakeResponse:
+    def __init__(self, blocks, fail: bool = False):
+        self._blocks = blocks
+        self._fail = fail
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    def raise_for_status(self):
+        if self._fail:
+            raise RuntimeError("synthetic download failure")
+
+    def iter_content(self, _chunk_size):
+        yield from self._blocks
+
+
+def test_http_download_is_atomic_on_success(monkeypatch, tmp_path) -> None:
+    dest = tmp_path / "payload.bin"
+
+    def fake_get(*_args, **_kwargs):
+        return _FakeResponse([b"abc", b"", b"def"])
+
+    monkeypatch.setattr("src.download_data.requests.get", fake_get)
+    _http_download("https://example.invalid/payload", dest)
+
+    assert dest.read_bytes() == b"abcdef"
+    assert not (tmp_path / "payload.bin.part").exists()
+
+
+def test_http_download_removes_partial_file_on_failure(monkeypatch, tmp_path) -> None:
+    dest = tmp_path / "payload.bin"
+
+    def fake_get(*_args, **_kwargs):
+        return _FakeResponse([b"partial"], fail=True)
+
+    monkeypatch.setattr("src.download_data.requests.get", fake_get)
+    with pytest.raises(RuntimeError, match="synthetic download failure"):
+        _http_download("https://example.invalid/payload", dest)
+
+    assert not dest.exists()
+    assert not (tmp_path / "payload.bin.part").exists()
