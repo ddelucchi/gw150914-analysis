@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gw150914-figures"
 version = "0.1.0"
-description = "Reproducible publication-grade GW150914 figure pipeline."
+description = "Reproducible GW150914 analysis and figure pipeline."
 requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.26",
@@ -13,15 +13,24 @@ dependencies = [
   "matplotlib>=3.8",
   "pandas>=2.1",
   "h5py>=3.10",
-  "pyyaml",
-  "requests",
-  "tqdm",
-  "corner",
+  "pyyaml>=6.0",
+  "requests>=2.31",
+  "tqdm>=4.66",
+  "corner>=2.2",
+]
+
+[project.optional-dependencies]
+analysis = [
   "gwpy>=3.0",
   "pycbc>=2.3",
   "pesummary>=1.0",
+]
+dev = [
+  "pytest>=8.0",
 ]
 
 [tool.setuptools]
 packages = ["src"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
