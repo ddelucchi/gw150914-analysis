@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 from _common import setup, load_event_strain, long_welch_asd
 from src.preprocess import viz_condition, extract_segment, apply_bandpass
 from src.style import detector_color, save_figure
-from src.waveform_overlay import maximum_likelihood_waveform
+from src.waveform_overlay import build_waveform_product
 
 
 def main() -> None:
