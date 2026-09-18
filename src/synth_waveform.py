@@ -27,7 +27,7 @@ MPC_M = 1e6 * PC_M
 
 
 def f_isco(m_total_msun: float) -> float:
-    """Schwarzschild ISCO orbital frequency (GW frequency = 2 * f_orb)."""
+    """Dominant-quadrupole GW frequency at the Schwarzschild ISCO."""
     m_s = m_total_msun * MSUN_S
     return 1.0 / (6.0 ** 1.5 * np.pi * m_s)
 
@@ -163,7 +163,7 @@ def newtonian_chirp(t: np.ndarray, tc: float, m1_msun: float, m2_msun: float,
     if not np.any(valid):
         return h, f
     tau_v = tau[valid]
-    f_v = (1.0 / np.pi) * (5.0 / (256.0 * mc_s)) ** (3.0 / 8.0) * tau_v ** (-3.0 / 8.0)
+    f_v = ((5.0 ** (3.0 / 8.0)) / (8.0 * np.pi)) * mc_s ** (-5.0 / 8.0) * tau_v ** (-3.0 / 8.0)
     band = (f_v >= f_low) & (f_v <= f_max)
     if not np.any(band):
         return h, f
